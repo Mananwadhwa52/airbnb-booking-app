@@ -1,6 +1,6 @@
 # 🏠 Airbnb Booking App
 
-A full-stack **Airbnb clone** built with **React** and **Node.js/Express**, featuring property listings, bookings, user authentication, image uploads, and search functionality.
+A full-stack **Airbnb clone** built with **React** and **Node.js/Express**, featuring property listings, bookings, user authentication, cloud-based image uploads via **Cloudinary**, and search functionality.
 
 ---
 
@@ -9,7 +9,7 @@ A full-stack **Airbnb clone** built with **React** and **Node.js/Express**, feat
 - **User Authentication** — Register, login & logout with JWT-based session management
 - **Property Listings** — Create, view, and manage your own property listings
 - **Booking System** — Book places with check-in/check-out dates, guest count & pricing
-- **Image Uploads** — Upload property photos via file upload or external URL
+- **Cloud Image Uploads** — Upload property photos to **Cloudinary** (file upload or external URL)
 - **Search & Filter** — Search for places with filters
 - **User Profile** — Edit profile details from the account page
 - **My Places** — Dashboard to manage your listed properties
@@ -41,11 +41,12 @@ A full-stack **Airbnb clone** built with **React** and **Node.js/Express**, feat
 | MongoDB + Mongoose | Database & ODM |
 | JSON Web Tokens | Authentication |
 | bcrypt | Password hashing |
-| Multer | File upload handling |
+| Cloudinary | Cloud image storage & CDN |
+| Multer | Multipart file upload parsing |
 | Joi | Request validation |
 | cookie-parser | Cookie handling |
 | CORS | Cross-origin requests |
-| image-downloader | Download images from URL |
+| dotenv | Environment variable management |
 
 ---
 
@@ -55,7 +56,9 @@ A full-stack **Airbnb clone** built with **React** and **Node.js/Express**, feat
 airbnb-booking-app/
 ├── Backend/
 │   ├── src/
-│   │   ├── app.js                 # Express server entry point
+│   │   ├── app.js                     # Express server entry point
+│   │   ├── config/
+│   │   │   └── cloudinary.js          # Cloudinary SDK configuration
 │   │   ├── controllers/
 │   │   │   ├── user.controller.js     # Auth & profile logic
 │   │   │   ├── place.controller.js    # Place CRUD operations
@@ -74,17 +77,16 @@ airbnb-booking-app/
 │   │   │   ├── user.validation.js
 │   │   │   ├── place.validation.js
 │   │   │   └── booking.validation.js
-│   │   ├── db/
-│   │   │   └── db.js                  # MongoDB connection
-│   │   └── uploads/                   # Uploaded images
-│   ├── .env.example
+│   │   └── db/
+│   │       └── db.js                  # MongoDB connection
+│   ├── .env
 │   ├── package.json
 │   └── .gitignore
 │
 ├── Frontend/
 │   ├── src/
-│   │   ├── App.jsx                # Root component
-│   │   ├── main.jsx               # React entry point
+│   │   ├── App.jsx                    # Root component
+│   │   ├── main.jsx                   # React entry point
 │   │   ├── pages/
 │   │   │   ├── IndexPage.jsx          # Home / listings page
 │   │   │   ├── LoginPage.jsx          # Login form
@@ -123,6 +125,7 @@ airbnb-booking-app/
 
 - **Node.js** v18+ and **npm**
 - **MongoDB** (local instance or [MongoDB Atlas](https://www.mongodb.com/atlas))
+- **Cloudinary** account ([sign up free](https://cloudinary.com/users/register_free))
 
 ### 1. Clone the Repository
 
@@ -141,9 +144,15 @@ npm install
 Create a `.env` file in the `Backend/` directory:
 
 ```env
-PORT=3000
-MONGODB_URI=mongodb://localhost:27017/airbnb-booking
+PORT=8000
+DB_URL=mongodb://localhost:27017/airbnb-booking-app
 JWT_SECRET_KEY=your_jwt_secret_key_here
+JWT_EXPIRES_IN=7d
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
 ```
 
 Start the backend server:
@@ -152,7 +161,7 @@ Start the backend server:
 npm run dev
 ```
 
-The API will be running at `http://localhost:3000`.
+The API will be running at `http://localhost:8000`.
 
 ### 3. Frontend Setup
 
@@ -184,8 +193,8 @@ The app will be running at `http://localhost:5173`.
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `POST` | `/upload-image-by-link` | ✅ | Upload image from external URL |
-| `POST` | `/upload-photos` | ✅ | Upload photos (up to 15) |
+| `POST` | `/upload-image-by-link` | ✅ | Upload image from external URL to Cloudinary |
+| `POST` | `/upload-photos` | ✅ | Upload photos to Cloudinary (up to 15) |
 | `POST` | `/new` | ✅ | Create a new place listing |
 | `GET` | `/my-places` | ✅ | Get all places owned by user |
 | `GET` | `/all` | ✅ | Get all available places |
@@ -206,9 +215,13 @@ The app will be running at `http://localhost:5173`.
 
 | Variable | Description | Example |
 |---|---|---|
-| `PORT` | Backend server port | `3000` |
-| `MONGODB_URI` | MongoDB connection string | `mongodb://localhost:27017/airbnb-booking` |
+| `PORT` | Backend server port | `8000` |
+| `DB_URL` | MongoDB connection string | `mongodb://localhost:27017/airbnb-booking-app` |
 | `JWT_SECRET_KEY` | Secret for signing JWT tokens | `my_super_secret_key` |
+| `JWT_EXPIRES_IN` | JWT token expiration duration | `7d` |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name | `your_cloud_name` |
+| `CLOUDINARY_API_KEY` | Cloudinary API key | `your_api_key` |
+| `CLOUDINARY_API_SECRET` | Cloudinary API secret | `your_api_secret` |
 
 ---
 
@@ -219,6 +232,7 @@ The app will be running at `http://localhost:5173`.
 | Command | Description |
 |---|---|
 | `npm run dev` | Start dev server with nodemon |
+| `npm start` | Start production server |
 
 ### Frontend (`/Frontend`)
 
