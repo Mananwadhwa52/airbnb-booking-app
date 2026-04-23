@@ -1,5 +1,19 @@
-const imageDownloader = require('image-downloader');
+const { cloudinary } = require('../config/cloudinary');
 const { Place } = require('../models/place.model');
+
+// Helper: upload a buffer to Cloudinary using upload_stream
+function uploadToCloudinary(fileBuffer, folder) {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            { folder },
+            (error, result) => {
+                if (error) return reject(error);
+                resolve(result);
+            }
+        );
+        stream.end(fileBuffer);
+    });
+}
 
 const uploadImageByLink = async (req, res) => {
     try {
@@ -11,27 +25,19 @@ const uploadImageByLink = async (req, res) => {
             })
         }
 
-        const newName = 'photo' + Date.now() + '.jpg';
+        // Upload image directly from URL to Cloudinary
+        const result = await cloudinary.uploader.upload(link, {
+            folder: 'airbnb-places',
+        });
 
-        imageDownloader.image({
-            url: link,
-            dest: __dirname + '/../uploads/' + newName,
+        return res.status(200).json({
+            success: true,
+            message: "Image added successfully",
+            url: result.secure_url,
         })
-            .then(() => {
-                return res.status(200).json({
-                    success: true,
-                    message: "Image added successfully",
-                    filename: newName,
-                })
-            })
-            .catch((err) => {
-                return res.status(400).json({
-                    success: false,
-                    message: err.message,
-                })
-            })
+
     } catch (error) {
-        console.log("Error coming while uploading image by link" + error.message);
+        console.log("Error coming while uploading image by link: " + error.message);
         res.status(500).json({
             success: false,
             message: "Something went wrong, try again later",
@@ -41,9 +47,21 @@ const uploadImageByLink = async (req, res) => {
 
 const uploadPhotos = async (req, res) => {
     try {
-        res.json(req.files);
+        // Upload each file buffer to Cloudinary
+        const uploadPromises = req.files.map(file => 
+            uploadToCloudinary(file.buffer, 'airbnb-places')
+        );
+
+        const results = await Promise.all(uploadPromises);
+
+        const uploadedFiles = results.map(result => ({
+            url: result.secure_url,
+            filename: result.public_id,
+        }));
+
+        res.json(uploadedFiles);
     } catch (error) {
-        console.log("Error coming while uploading image by link" + error.message);
+        console.log("Error coming while uploading photos: " + error.message);
         res.status(500).json({
             success: false,
             message: "Something went wrong, try again later",
@@ -63,7 +81,7 @@ const addNewPlace = async (req, res) => {
         })
 
     } catch (error) {
-        console.log("Error coming while uploading image by link" + error.message);
+        console.log("Error coming while adding new place: " + error.message);
         res.status(500).json({
             success: false,
             message: "Something went wrong, try again later",
@@ -90,7 +108,7 @@ const getMyPlaces = async (req, res) => {
         })
 
     } catch (error) {
-        console.log("Error coming while uploading image by link" + error.message);
+        console.log("Error coming while fetching my places: " + error.message);
         res.status(500).json({
             success: false,
             message: "Something went wrong, try again later",
@@ -126,7 +144,7 @@ const getPlace = async (req, res) => {
             place,
         })
     } catch (error) {
-        console.log("Error coming while uploading image by link" + error.message);
+        console.log("Error coming while fetching place: " + error.message);
         res.status(500).json({
             success: false,
             message: "Something went wrong, try again later",
@@ -147,7 +165,7 @@ const getAllPlaces = async (req, res) => {
         })
 
     } catch (error) {
-        console.log("Error coming while uploading image by link" + error.message);
+        console.log("Error coming while fetching all places: " + error.message);
         res.status(500).json({
             success: false,
             message: "Something went wrong, try again later",

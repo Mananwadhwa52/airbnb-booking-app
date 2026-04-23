@@ -14,16 +14,9 @@ const multer = require('multer');
 
 const placeRouter = express.Router();
 
-const storage = multer.diskStorage({
-    destination : function(req, file, cb) {
-        cb(null, './src/uploads');
-    },
-    filename : function(req, file, cb) {
-        cb(null, `${Date.now()}-${file.originalname}`);
-    }
-})
-
-const upload = multer({ storage })
+// Use memory storage — files stay in buffer, then we upload to Cloudinary manually
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 
 placeRouter.post('/upload-image-by-link', userAuth, uploadImageByLink)

@@ -42,7 +42,7 @@ const Places = () => {
                   <Link key={acc._id} to={'/places/' + acc._id} className='flex bg-gray-100 gap-4 p-4 rounded-2xl cursor-pointer'>
                     <div className='w-44 flex shrink-0 lg:w-1/6'>
                       {acc.photos.length > 0 && (
-                        <img className='aspect-square object-cover rounded-2xl shadow-xl' src={'http://localhost:3000/uploads/' + acc.photos[0]} alt="Photo" />
+                        <img className='aspect-square object-cover rounded-2xl shadow-xl' src={acc.photos[0]} alt="Photo" />
                       )}
                     </div>
                     <div className='grow-0 shrink'>

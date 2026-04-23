@@ -55,7 +55,7 @@ const Bookings = () => {
              <Link to={'/places/' + booking.placeId._id} key={index} className='flex gap-5 bg-gray-200 py-2 px-2 rounded-2xl'>
              {booking?.placeId.photos?.length > 0 && (
                <div className='w-44 flex shrink-0 lg:w-1/6'>
-                 <img className='aspect-square object-cover rounded-2xl shadow-xl' src={'http://localhost:3000/uploads/' + booking?.placeId.photos[0]} alt="" />
+                 <img className='aspect-square object-cover rounded-2xl shadow-xl' src={booking?.placeId.photos[0]} alt="" />
                </div>
              )}
              <div className='py-2 mr-1 overflow-hidden flex flex-col gap-4 w-full'>
